@@ -1,0 +1,72 @@
+version: '3'
+
+services:
+  mysql:
+    image: mysql:latest
+    container_name: mysql-container
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    networks:
+      - microservices-network
+
+  consul:
+    image: consul:1.15.4
+    container_name: consul-container1
+    ports:
+      - "8500:8500"
+    networks:
+      - microservices-network
+  gateway-service:
+    build:
+      context: ./gateway
+    ports:
+      - "8888:8888"
+    depends_on:
+      - mysql
+      - consul
+    networks:
+      - microservices-network
+    environment:
+      SPRING_CLOUD_CONSUL_HOST: consul
+      SPRING_CLOUD_CONSUL_PORT: 8500
+      SPRING_CLOUD_CONSUL_DISCOVERY_ENABLED: 'true'
+  blog-service:
+    build:
+      context: ./blog
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mysql
+      - consul
+      - gateway-service
+    networks:
+      - microservices-network
+    environment:
+      SPRING_CLOUD_CONSUL_HOST: consul
+      SPRING_CLOUD_CONSUL_PORT: 8500
+      SPRING_CLOUD_CONSUL_DISCOVERY_ENABLED: 'true'
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/blogserviceDb?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    healthcheck:
+      test: "/usr/bin/mysql --user=root --password=root --execute \"SHOW DATABASES;\""
+      interval: 5s
+      timeout: 2s
+      retries: 100
+ 
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "8082:80"
+    networks:
+      - microservices-network
+
+networks:
+  microservices-network:
+    driver: bridge

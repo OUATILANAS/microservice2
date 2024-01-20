@@ -1,0 +1,4 @@
+com\bezkoder\springjwt\SpringBootSecurityJwtApplicationTests.class
+com\mdq\springjwt\services\StoryServiceTest.class
+com\mdq\springjwt\services\CommentServiceTest.class
+com\mdq\springjwt\services\UserServiceTest.class

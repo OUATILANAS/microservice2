@@ -1,0 +1,20 @@
+server:
+  port: 8888
+
+spring:
+  application:
+    name: gateway
+  cloud:
+    discovery:
+      enabled: true
+      consul:
+        host: localhost
+        port: 8500
+        service-name: gateway
+
+  gateway:
+    routes:
+      - id: r1
+        uri: lb://users
+        predicates:
+          - Path=/users/**
